@@ -1,7 +1,7 @@
-package stateless
+package stateful
 
 import (
-	proto "ably/protos/stateless"
+	proto "ably/protos/stateful"
 	"context"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
@@ -9,21 +9,24 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"math/rand"
 	"net"
 	"time"
 )
 
-type StatelessServer struct {
+type SessionStore interface {
+	//TODO
+}
+
+type StatefulServer struct {
 	log    logrus.FieldLogger
-	seed   int64
+	store  SessionStore
 	server *grpc.Server
 }
 
-func New(log *logrus.Logger, seed int64) *StatelessServer {
-	s := &StatelessServer{
+func New(log *logrus.Logger, store SessionStore) *StatefulServer {
+	s := &StatefulServer{
 		log:  log,
-		seed: seed,
+		store: store,
 	}
 
 	opts := []grpc_logrus.Option{
@@ -41,12 +44,11 @@ func New(log *logrus.Logger, seed int64) *StatelessServer {
 		),
 	)
 
-	proto.RegisterStatelessNumberGeneratorServer(s.server, s)
+	proto.RegisterStatefulNumberGeneratorServer(s.server, s)
 	return s
 }
 
-func (s *StatelessServer) Run(ctx context.Context, externalAddress string) error {
-	rand.Seed(s.seed)
+func (s *StatefulServer) Run(ctx context.Context, externalAddress string) error {
 	return runServer(ctx, s.server, externalAddress)
 }
 
