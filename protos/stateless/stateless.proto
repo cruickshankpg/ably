@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package ablyStatelessServer;
+
+option go_package = "proto";
+
+service StatelessNumberGenerator {
+    rpc GenerateSequence (GenerateSequenceRequest) returns (stream Generated);
+}
+
+message GenerateSequenceRequest {
+    uint32 restartFrom = 1;
+}
+
+message Generated {
+    uint32 number = 1;
+}

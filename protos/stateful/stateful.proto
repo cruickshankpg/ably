@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ablyStatefulServer;
+
+option go_package = "proto";
+
+service StatefulNumberGenerator {
+    rpc GenerateSequence (GenerateSequenceRequest) returns (stream Generated);
+    rpc ReconnectSequence (ReconnectSequenceRequest) returns (stream Generated);
+}
+
+message GenerateSequenceRequest {
+    string connectionID = 1;
+    uint32 sequenceLength = 2;
+}
+
+message ReconnectSequenceRequest {
+    string connectionID = 1;
+}
+
+message Generated {
+    uint32 number = 1;
+    bool finalItem = 2;
+    uint32 checksum = 3;
+}
