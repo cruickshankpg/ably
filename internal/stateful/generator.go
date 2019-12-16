@@ -26,19 +26,19 @@ func (s *StatefulServer) GenerateSequence(req *proto.GenerateSequenceRequest, st
 
 	prng := rand.NewSource(seed).(rand.Source64)
 
-	seq := make([]byte, 0, 1000)
-
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
+	var seq string
+
 	for i := uint32(0); i < req.SequenceLength; i++ {
 		num := uint32(prng.Uint64() >> 32)
-		seq = strconv.AppendUint(seq, uint64(num), 10)
+		seq = seq + strconv.FormatUint(uint64(num), 10)
 
 		gen := &proto.Generated{Number: num}
 		if i == req.SequenceLength-1 {
 			gen.FinalItem = true
-			chSum := sha256.Sum256(seq)
+			chSum := sha256.Sum256([]byte(seq))
 			gen.Checksum = chSum[:]
 		}
 
@@ -96,6 +96,8 @@ func (s *StatefulServer) ReconnectSequence(req *proto.ReconnectSequenceRequest, 
 	defer ticker.Stop()
 	for ; i < state.SequenceLength; i++ {
 		num := uint32(prng.Uint64() >> 32)
+
+
 		seq = strconv.AppendUint(seq, uint64(num), 10)
 
 		gen := &proto.Generated{Number: num}
