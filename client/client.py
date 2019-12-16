@@ -1,5 +1,14 @@
+"""client.py connects to a specified stateful or stateless number generation
+server and verifies the results given.
+
+Usage:
+   client.py stateful <port>
+   client.py stateless <port>
+"""
+
 import time
 
+import docopt
 import grpc
 import stateless_pb2
 import stateless_pb2_grpc
@@ -7,6 +16,7 @@ import stateful_pb2
 import stateful_pb2_grpc
 import uuid
 import hashlib
+import random
 
 
 class AblyClient(object):
@@ -52,7 +62,6 @@ class StatefulClient(AblyClient):
         count = 0
         while True:
             try:
-                print("conndecting to: {}".format(self.server_address))
                 channel = grpc.insecure_channel(self.server_address)
                 stub = stateful_pb2_grpc.StatefulNumberGeneratorStub(channel)
 
@@ -87,22 +96,14 @@ class StatefulClient(AblyClient):
             yield gen
 
 
-def main():
-    # total = 0
-    # client = StatelessClient()
-    # for num in client.get_sequence(15):
-    #     print("received: " + str(num))
-    #     total += num
-    #
-    # print("total: " + str(total))
-    client = StatefulClient(port=9000)
+def run_stateful(port, sequence_len):
+    client = StatefulClient(port=port)
     seq = ""
     recv_check = b''
-    for item in client.get_sequence(5):
+    for item in client.get_sequence(sequence_len):
         seq = seq + str(item.number)
         if len(item.checksum) is not None:
             recv_check = item.checksum
-
     sha = hashlib.sha256(bytes(seq, 'utf8'))
     csum = sha.digest()
     if csum != recv_check:
@@ -111,6 +112,28 @@ def main():
         print("calculated: {}".format(csum))
     else:
         print("checksums match")
+
+
+def run_stateless(port, sequence_len):
+    total = 0
+    client = StatelessClient(port=port)
+    for num in client.get_sequence(sequence_len):
+        total += num
+    print("total: " + str(total))
+
+
+def main():
+    args = docopt.docopt(__doc__)
+
+    random.seed()
+    n = int(random.uniform(0, 0xffff))
+
+    if args['stateless']:
+        print('starting stateless client with sequence length: {}'.format(n))
+        run_stateless(args['<port>'], n)
+    elif args['stateful']:
+        print('starting stateful client with sequence length: {}'.format(n))
+        run_stateful(args['<port>'], n)
 
 
 if __name__ == '__main__':
