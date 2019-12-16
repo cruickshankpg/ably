@@ -16,10 +16,11 @@ message GenerateSequenceRequest {
 
 message ReconnectSequenceRequest {
     string connectionID = 1;
+    uint32 lastReceivedIndex = 2;
 }
 
 message Generated {
     uint32 number = 1;
     bool finalItem = 2;
-    uint32 checksum = 3;
+    bytes checksum = 3;
 }

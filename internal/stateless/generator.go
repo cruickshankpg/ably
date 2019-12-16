@@ -3,6 +3,8 @@ package stateless
 import (
 	proto "ably/protos/stateless"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"math/rand"
 	"time"
 )
@@ -16,26 +18,21 @@ func (s *StatelessServer) GenerateSequence(req *proto.GenerateSequenceRequest, s
 		toSend = toSend << 1
 	}
 
-	err := stream.Send(&proto.Generated{Number: toSend})
-	if err != nil {
-		return errors.Wrap(err, "sending on stream")
-	}
-	// TODO handle the integer overflowing
-	toSend = toSend << 1
-
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-
-	select {
-	case <-stream.Context().Done():
-		return nil
-	case <-ticker.C:
+	for {
 		err := stream.Send(&proto.Generated{Number: toSend})
 		if err != nil {
-			return errors.Wrap(err, "sending on stream")
+			return status.Error(codes.Internal, errors.Wrap(err, "sending on stream").Error())
 		}
+		//TODO handle integer overflow
 		toSend = toSend << 1
-	}
 
-	return nil
+		select {
+		case <-stream.Context().Done():
+			return nil
+		case <-ticker.C:
+			continue
+		}
+	}
 }

@@ -1,6 +1,7 @@
 package stateful
 
 import (
+	"ably/internal/store"
 	proto "ably/protos/stateful"
 	"context"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -14,7 +15,10 @@ import (
 )
 
 type SessionStore interface {
-	//TODO
+	Set(key string, val store.SessionState)
+	Get(key string) (store.SessionState, bool)
+	Delete(key string)
+	Expire(key string, after time.Duration)
 }
 
 type StatefulServer struct {
@@ -25,7 +29,7 @@ type StatefulServer struct {
 
 func New(log *logrus.Logger, store SessionStore) *StatefulServer {
 	s := &StatefulServer{
-		log:  log,
+		log:   log,
 		store: store,
 	}
 

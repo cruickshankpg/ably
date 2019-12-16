@@ -2,6 +2,7 @@ package main
 
 import (
 	"ably/internal/stateful"
+	"ably/internal/store"
 	"context"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -29,7 +30,7 @@ func main() {
 		cancel()
 	}()
 
-	if err := stateful.New(log, struct{}{}).Run(runCtx, "localhost:9000"); err != nil {
+	if err := stateful.New(log, store.New()).Run(runCtx, "localhost:9000"); err != nil {
 		log.WithError(err).Error("server failed")
 		return
 	}
