@@ -2,8 +2,11 @@
 server and verifies the results given.
 
 Usage:
-   client.py stateful <port>
-   client.py stateless <port>
+    client.py [-l LENGTH] stateful <port>
+    client.py [-l LENGTH] stateless <port>
+
+Options:
+    -l LENGTH  sequence length. If not specified a random number will be chosen between 0 and 0xffff.
 """
 
 import time
@@ -125,15 +128,17 @@ def run_stateless(port, sequence_len):
 def main():
     args = docopt.docopt(__doc__)
 
-    random.seed()
-    n = int(random.uniform(0, 0xffff))
+    length = int(args['-l'])
+    if length is None:
+        random.seed()
+        length = int(random.uniform(0, 0xffff))
 
     if args['stateless']:
-        print('starting stateless client with sequence length: {}'.format(n))
-        run_stateless(args['<port>'], n)
+        print('starting stateless client with sequence length: {}'.format(length))
+        run_stateless(args['<port>'], length)
     elif args['stateful']:
-        print('starting stateful client with sequence length: {}'.format(n))
-        run_stateful(args['<port>'], n)
+        print('starting stateful client with sequence length: {}'.format(length))
+        run_stateful(args['<port>'], length)
 
 
 if __name__ == '__main__':

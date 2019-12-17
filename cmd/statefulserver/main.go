@@ -4,6 +4,8 @@ import (
 	"ably/internal/stateful"
 	"ably/internal/store"
 	"context"
+	"flag"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
@@ -11,13 +13,18 @@ import (
 )
 
 func main() {
+	host := flag.String("host", "localhost", "address to listen to")
+	port := flag.Int("port", 9000, "port to listen on")
+	flag.Parse()
+	address := fmt.Sprintf("%s:%d", *host, *port)
 	log := logrus.New()
+
 	log.SetFormatter(&logrus.JSONFormatter{
 		FieldMap: logrus.FieldMap{
 			logrus.FieldKeyTime: "@timestamp",
 		},
 	})
-	log.Info("starting stateful server")
+	log.Info("starting stateful server listening on " + address)
 
 	runCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -30,7 +37,7 @@ func main() {
 		cancel()
 	}()
 
-	if err := stateful.New(log, store.New()).Run(runCtx, "localhost:9000"); err != nil {
+	if err := stateful.New(log, store.New()).Run(runCtx, address); err != nil {
 		log.WithError(err).Error("server failed")
 		return
 	}
