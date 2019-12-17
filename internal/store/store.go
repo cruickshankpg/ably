@@ -1,7 +1,6 @@
 package store
 
 import (
-	"sync"
 	"time"
 
 	"github.com/patrickmn/go-cache"
