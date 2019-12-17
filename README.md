@@ -32,6 +32,19 @@ The client will randomly choose a sequence length between 0 and 0xffff. To manua
 
 <code>python3 client.py stateful 9001 -l 3</code>
 
+## Testing
+
+In the client directory there is a python script `test.py`. This relies on being run from the client directory and the server binaries having been built.
+
+to run the test script:
+
+<code>python3 test.py</code>
+
+This runs the servers in debug mode. This makes the servers close the stream after each message forcing the clients to reconnect.
+
+- In the stateless case if the client produces the correct number of messages then the test passed
+- In the stateful case if the checksums from the client and server match then the test passes
+
 ## Protocol
 
 Both stateful and stateless protocols are built on gRPC to allow easy error handling and streaming support.
@@ -79,3 +92,8 @@ The seed allows the PRNG to be reconstructed on reconnection so the same numbers
 The sequence length being stored is a convenience for client.
 
 The store has a built in expiry on entries of 30 seconds.
+
+## Issues
+
+- As the stateless generator just doubles the number each time, this is at risk of overflowing after 24 iterations.
+- The go servers need unit tests adding but I ran out of time.
