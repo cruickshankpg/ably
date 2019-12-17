@@ -4,6 +4,7 @@ import (
 	"ably/internal/store"
 	proto "ably/protos/stateful"
 	"crypto/sha256"
+	"fmt"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,7 +19,7 @@ func (s *StatefulServer) GenerateSequence(req *proto.GenerateSequenceRequest, st
 	}
 
 	if req.SequenceLength < 1 {
-		return status.Error(codes.InvalidArgument, "invalid sequence length")
+		return status.Error(codes.InvalidArgument, fmt.Sprintf("invalid sequence length: %d", req.SequenceLength))
 	}
 
 	seed := time.Now().Unix()

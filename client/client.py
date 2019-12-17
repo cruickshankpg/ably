@@ -80,6 +80,8 @@ class StatefulClient(AblyClient):
                         channel.close()
                         return
             except grpc.RpcError as e:
+                if e.code() == grpc.StatusCode.NOT_FOUND:
+                    raise e
                 print("hit exception: " + e.__str__())
                 if timeout > self.max_timeout:
                     raise e
@@ -95,7 +97,7 @@ class StatefulClient(AblyClient):
     @staticmethod
     def __recon_gen_iter(stub, conn_id, last_recv):
         req = stateful_pb2.ReconnectSequenceRequest(connectionID=str(conn_id), lastReceivedIndex=last_recv)
-        for gen in stub.GenerateSequence(req):
+        for gen in stub.ReconnectSequence(req):
             yield gen
 
 
@@ -128,10 +130,10 @@ def run_stateless(port, sequence_len):
 def main():
     args = docopt.docopt(__doc__)
 
-    length = int(args['-l'])
-    if length is None:
-        random.seed()
-        length = int(random.uniform(0, 0xffff))
+    random.seed()
+    length = int(random.uniform(0, 0xffff))
+    if args['-l'] is not None:
+        length = int(args['-l'])
 
     if args['stateless']:
         print('starting stateless client with sequence length: {}'.format(length))
