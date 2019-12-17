@@ -15,8 +15,6 @@ type SessionState struct {
 type Store struct {
 	//sessions    map[string]SessionState
 	sessions *cache.Cache
-
-	sessionLock sync.RWMutex
 }
 
 func New() *Store {
