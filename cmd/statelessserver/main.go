@@ -39,7 +39,7 @@ func main() {
 		cancel()
 	}()
 
-	if err := stateless.New(log, time.Now().Unix(), debug).Run(runCtx, address); err != nil {
+	if err := stateless.New(log, time.Now().Unix(), *debug).Run(runCtx, address); err != nil {
 		log.WithError(err).Error("server failed")
 		return
 	}
