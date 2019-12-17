@@ -1,0 +1,4 @@
+docopt==0.6.2
+grpcio==1.25.0
+grpcio-tools==1.25.0
+uuid==1.30
