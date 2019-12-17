@@ -70,10 +70,12 @@ The PRNG implementation is provided by https://golang.org/pkg/math/rand.
 
 The checksum is calculated by taking the SHA256 hash of the concatenated UTF8 string formats of each element in the sequence.
 
-## State Store
+#### State Store
 
 For stateful connections the seed used to generate the PRNG and the requested sequence length are stored in a key value store keyed on the connection UUID.
 
 The seed allows the PRNG to be reconstructed on reconnection so the same numbers can be generated across reconnections.
 
 The sequence length being stored is a convenience for client.
+
+The store has a built in expiry on entries of 30 seconds.

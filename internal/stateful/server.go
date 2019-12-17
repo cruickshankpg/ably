@@ -18,7 +18,6 @@ type SessionStore interface {
 	Set(key string, val store.SessionState)
 	Get(key string) (store.SessionState, bool)
 	Delete(key string)
-	Expire(key string, after time.Duration)
 }
 
 type StatefulServer struct {

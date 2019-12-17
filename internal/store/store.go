@@ -3,6 +3,8 @@ package store
 import (
 	"sync"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 )
 
 type SessionState struct {
@@ -11,35 +13,33 @@ type SessionState struct {
 }
 
 type Store struct {
-	sessions    map[string]SessionState
+	//sessions    map[string]SessionState
+	sessions *cache.Cache
+
 	sessionLock sync.RWMutex
 }
 
 func New() *Store {
 	return &Store{
-		sessions: make(map[string]SessionState),
+		sessions: cache.New(time.Second*30, time.Second*5),
 	}
 }
 
 func (s *Store) Set(key string, val SessionState) {
-	s.sessionLock.Lock()
-	s.sessions[key] = val
-	s.sessionLock.Unlock()
+	s.sessions.Set(key, val, cache.DefaultExpiration)
 }
 
 func (s *Store) Get(key string) (SessionState, bool) {
-	s.sessionLock.RLock()
-	val, ok := s.sessions[key]
-	s.sessionLock.RUnlock()
+	o, ok := s.sessions.Get(key)
+	if !ok {
+		return SessionState{}, ok
+	}
+
+	val := o.(SessionState)
+
 	return val, ok
 }
 
 func (s *Store) Delete(key string) {
-	s.sessionLock.Lock()
-	delete(s.sessions, key)
-	s.sessionLock.Unlock()
-}
-
-func (s *Store) Expire(key string, after time.Duration) {
-	//TODO
+	s.sessions.Delete(key)
 }

@@ -22,7 +22,6 @@ func (s *StatefulServer) GenerateSequence(req *proto.GenerateSequenceRequest, st
 	}
 
 	seed := time.Now().Unix()
-	s.store.Set(req.ConnectionID, store.SessionState{Seed: seed, SequenceLength: req.SequenceLength})
 
 	prng := rand.NewSource(seed).(rand.Source64)
 
@@ -32,6 +31,9 @@ func (s *StatefulServer) GenerateSequence(req *proto.GenerateSequenceRequest, st
 	var seq string
 
 	for i := uint32(0); i < req.SequenceLength; i++ {
+		// Naively update the cache on each loop so it doesn't expire.
+		s.store.Set(req.ConnectionID, store.SessionState{Seed: seed, SequenceLength: req.SequenceLength})
+
 		num := uint32(prng.Uint64() >> 32)
 		seq = seq + strconv.FormatUint(uint64(num), 10)
 
@@ -49,7 +51,6 @@ func (s *StatefulServer) GenerateSequence(req *proto.GenerateSequenceRequest, st
 
 		select {
 		case <-stream.Context().Done():
-			s.store.Expire(req.ConnectionID, time.Second*30)
 			return nil
 		case <-ticker.C:
 			continue
@@ -78,9 +79,6 @@ func (s *StatefulServer) ReconnectSequence(req *proto.ReconnectSequenceRequest, 
 		return status.Error(codes.InvalidArgument, "last received index is larger than sequence length")
 	}
 
-	// clear expiry
-	s.store.Expire(req.ConnectionID, 0)
-
 	prng := rand.NewSource(state.Seed).(rand.Source64)
 	seq := make([]byte, 0, 1000)
 
@@ -95,8 +93,10 @@ func (s *StatefulServer) ReconnectSequence(req *proto.ReconnectSequenceRequest, 
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for ; i < state.SequenceLength; i++ {
-		num := uint32(prng.Uint64() >> 32)
+		// Naively update the cache on each loop so it doesn't expire.
+		s.store.Set(req.ConnectionID, store.SessionState{Seed: state.Seed, SequenceLength: state.SequenceLength})
 
+		num := uint32(prng.Uint64() >> 32)
 
 		seq = strconv.AppendUint(seq, uint64(num), 10)
 
@@ -114,7 +114,6 @@ func (s *StatefulServer) ReconnectSequence(req *proto.ReconnectSequenceRequest, 
 
 		select {
 		case <-stream.Context().Done():
-			s.store.Expire(req.ConnectionID, time.Second*30)
 			return nil
 		case <-ticker.C:
 			continue
