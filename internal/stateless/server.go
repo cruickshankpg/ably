@@ -18,12 +18,15 @@ type StatelessServer struct {
 	log    logrus.FieldLogger
 	seed   int64
 	server *grpc.Server
+
+	debug bool
 }
 
-func New(log *logrus.Logger, seed int64) *StatelessServer {
+func New(log *logrus.Logger, seed int64, debug bool) *StatelessServer {
 	s := &StatelessServer{
-		log:  log,
-		seed: seed,
+		log:   log,
+		seed:  seed,
+		debug: debug,
 	}
 
 	opts := []grpc_logrus.Option{

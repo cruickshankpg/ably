@@ -28,6 +28,11 @@ func (s *StatelessServer) GenerateSequence(req *proto.GenerateSequenceRequest, s
 		//TODO handle integer overflow
 		toSend = toSend << 1
 
+		// close stream after every message when testing
+		if s.debug {
+			return nil
+		}
+
 		select {
 		case <-stream.Context().Done():
 			return nil

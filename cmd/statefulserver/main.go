@@ -15,6 +15,7 @@ import (
 func main() {
 	host := flag.String("host", "localhost", "address to listen to")
 	port := flag.Int("port", 9000, "port to listen on")
+	debug := flag.Bool("debug", false, "close stream after each message")
 	flag.Parse()
 	address := fmt.Sprintf("%s:%d", *host, *port)
 	log := logrus.New()
@@ -37,7 +38,7 @@ func main() {
 		cancel()
 	}()
 
-	if err := stateful.New(log, store.New()).Run(runCtx, address); err != nil {
+	if err := stateful.New(log, store.New(), *debug).Run(runCtx, address); err != nil {
 		log.WithError(err).Error("server failed")
 		return
 	}

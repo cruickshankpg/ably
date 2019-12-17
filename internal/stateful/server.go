@@ -24,12 +24,15 @@ type StatefulServer struct {
 	log    logrus.FieldLogger
 	store  SessionStore
 	server *grpc.Server
+
+	debug bool
 }
 
-func New(log *logrus.Logger, store SessionStore) *StatefulServer {
+func New(log *logrus.Logger, store SessionStore, debug bool) *StatefulServer {
 	s := &StatefulServer{
 		log:   log,
 		store: store,
+		debug: debug,
 	}
 
 	opts := []grpc_logrus.Option{

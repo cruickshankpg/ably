@@ -49,6 +49,11 @@ func (s *StatefulServer) GenerateSequence(req *proto.GenerateSequenceRequest, st
 			return status.Error(codes.Internal, errors.Wrap(err, "sending on stream").Error())
 		}
 
+		// For testing purposes
+		if s.debug {
+			return nil
+		}
+
 		select {
 		case <-stream.Context().Done():
 			return nil
@@ -110,6 +115,11 @@ func (s *StatefulServer) ReconnectSequence(req *proto.ReconnectSequenceRequest, 
 		err := stream.Send(gen)
 		if err != nil {
 			return status.Error(codes.Internal, errors.Wrap(err, "sending on stream").Error())
+		}
+
+		// For testing purposes
+		if s.debug {
+			return nil
 		}
 
 		select {
